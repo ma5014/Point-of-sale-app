@@ -1,4 +1,5 @@
 # shopping_cart.py
+import datetime
 
 products = [{"id":1, "name": "Chocolate Sandwich Cookies", "department": "snacks", "aisle": "cookies cakes", "price": 3.50},
     {"id":2, "name": "All-Seasons Salt", "department": "pantry", "aisle": "spices seasonings", "price": 4.99},
@@ -21,40 +22,38 @@ products = [{"id":1, "name": "Chocolate Sandwich Cookies", "department": "snacks
     {"id":19, "name": "Gluten Free Quinoa Three Cheese & Mushroom Blend", "department": "dry goods pasta", "aisle": "grains rice dried goods", "price": 3.99},
     {"id":20, "name": "Pomegranate Cranberry & Aloe Vera Enrich Drink", "department": "beverages", "aisle": "juice nectars", "price": 4.25}] # based on data from Instacart: https://www.instacart.com/datasets/grocery-shopping-2017
 
-#print(products)
+print(products)
+tax_rate = 0.08875
 
-
-#product_ids = []
-
-#while True:
-#    product_id = input("Hey please input a product identifier: ")
-#    if product_id == "DONE":
-#        break
-#    else:
-#        product_ids.append(product_id)
-
-#print("--------")
-#print(product_ids)
-#print("--------")
-
-product_ids = [3, 12, 10, 3, 5, 9]
+def sort_key(p):
+    return p["department"], p["name"]
 
 def matching_product(product_identifier):
-    products_list = [p for p in products if p ["id"] == product_identifier]
-    return products_list[0]
+    for p in products:
+        if p["id"] == product_identifier:
+            return p
+    return None
 
-raw_total = 0
+#product_ids = [3, 12, 10, 3, 5, 9]
 
-for pid in product_ids:
-    product = matching_product(int(pid))
-    #raw_total = raw_total + product["price"]
-    raw_total += product["price"]
-    print(str(product["id"]) + " " + product ["name"] + " " + str(product["price"]))
 
-print("----------------------")
-print(raw_total)
-print("----------------------")
+cart = []
+currentDT = datetime.datetime.now()
+while True:
+    product_id = input("Hey please input a product identifier or DONE: ")
+    if product_id == "DONE":
+        break
+    elif not product_id.isnumeric():
+        print("Please, enter a numeric product ID")
+    else:
+        product = matching_product(int(product_id))
+        if product is not None:
+            cart.append(product)
+        else:
+            print("Product id:", product_id, " has not been found")
 
+
+cart = sorted(cart, key=sort_key)  # sort by deaprtment and product
 #print Receipt
 print("-----------------------")
 print("Maria's Grocery Store")
@@ -62,26 +61,44 @@ print("------------------------")
 print("Web: www.mariasgrocerystore.com")
 print("phone: 1.201.344.56777")
 #checkout time/date
-import datetime
+#rint("--------")
+#print(product_ids)
+#print("--------")
+raw_total = 0
+#cart_items = ""
 
-print("Checkout Time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%m:%S"))
+print("Checkout Time: ", currentDT.strftime("%Y-%m-%d %H:%M:%S"))
 
 #shopping cart items formatted as US dollars
 print("----------------------")
 print("Shopping Cart Items:")
-for pid in product_ids:
-    product = matching_product(int(pid))
-    raw_total += product["price"]
-    price_usd = ' (${0:.2f})'.format(product["price"])
-    print(" + " + product["name"] + price_usd)
-#subtotal+ tax owed
-print("----------------------")
-print("Subtotal:", '${0:.2f}'.format(raw_total))
-Tax = raw_total * 0.08875
 
-print("Plus NYC Sales Tax (8.875%):", '${0:2f}'.format(Tax))
-Total = raw_total + Tax
-print("Total:", '${0:2f}'.format(raw_total))
+
+dept_total = None
+dept_name = None
+for product in cart:
+    if dept_name is None:
+        dept_name = product["department"]
+        dept_total = 0
+        print(dept_name)
+    elif dept_name != product["department"]:
+        # print previous department Total
+        print("{} total: ${:,.2f}".format(dept_name, dept_total))
+        dept_name = product["department"]
+        dept_total = 0
+        print(dept_name)
+    raw_total += product["price"]
+    dept_total += product["price"]
+    print(" + {} ${:,.2f}".format(product["name"], product["price"]))
+
+
+print("----------------------")
+print("Sub total: ${0:,.2f}".format(raw_total))
+tax = round(raw_total * tax_rate, 2)
+print("Tax: ${0:,.2f}".format(tax))
+print("----------------------")
+print("Total: ${0:,.2f}".format(raw_total + tax))
+
 
 #friendly message
 print("------------")
